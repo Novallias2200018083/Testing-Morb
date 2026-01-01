@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use App\Models\Counter;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
+use App\Models\Service;
 
 class QueueListController extends Controller
 {
@@ -60,69 +61,133 @@ class QueueListController extends Controller
     public function getDashboardData(Request $request)
     {
         $user = Auth::user();
-        
-        
-        $filterServiceIds = null; 
 
         
-        if ($user->role !== 'admin') {
+        if ($user->role === 'admin') {
+            
            
-            $counter = Counter::where('active_user_id', $user->id)->with('services')->first();
+            $stats = [
+                'pending'   => Queue::whereDate('created_at', Carbon::today())->where('status', 'pending')->count(),
+                'serving'   => Queue::whereDate('created_at', Carbon::today())->where('status', 'serving')->count(),
+                'completed' => Queue::whereDate('created_at', Carbon::today())->where('status', 'completed')->count(),
+                'skipped'   => Queue::whereDate('created_at', Carbon::today())->where('status', 'skipped')->count(),
+            ];
 
-            if (!$counter) {
-                
-                return response()->json(['waiting' => [], 'skipped' => [], 'role' => 'staff']);
-            }
+           
+            $counters = Counter::with('activeUser')->get()->map(function($c) {
+                $servedToday = Queue::where('counter_id', $c->id)
+                                    ->whereDate('created_at', Carbon::today())
+                                    ->where('status', 'completed')
+                                    ->count();
+                return [
+                    'name' => $c->name,
+                    'status' => $c->status, 
+                    'operator' => $c->activeUser ? $c->activeUser->name : '-', 
+                    'served_count' => $servedToday
+                ];
+            });
+
+           
+            $services = Service::withCount(['queues' => function($q) {
+                $q->whereDate('created_at', Carbon::today())->where('status', 'pending');
+            }])->get()->map(function($s) {
+                return [
+                    'name' => $s->name,
+                    'pending_count' => $s->queues_count 
+                ];
+            });
 
             
-            $filterServiceIds = $counter->services->pluck('id')->toArray();
+            $monitoring = Service::get()->map(function($s) {
+                
+                
+                $active = Queue::where('service_id', $s->id)
+                               ->where('status', 'serving')
+                               ->whereDate('created_at', Carbon::today())
+                               ->with('counter') 
+                               ->first(); 
+
+                
+                $next = Queue::where('service_id', $s->id)
+                             ->where('status', 'pending')
+                             ->whereDate('created_at', Carbon::today())
+                             ->orderBy('id', 'asc') 
+                             ->limit(5)
+                             ->get()
+                             ->pluck('queue_code'); 
+
+                return [
+                    'service_name' => $s->name,
+                    'current_code' => $active ? $active->queue_code : '--', 
+                    'current_counter' => $active && $active->counter ? $active->counter->name : null, 
+                    'next_queue' => $next, 
+                    'total_pending' => $next->count() 
+                ];
+            });
+
+            return response()->json([
+                'role' => 'admin',
+                'stats' => $stats,
+                'counters' => $counters,
+                'services' => $services,   
+                'monitoring' => $monitoring 
+            ]);
         }
 
         
-        
+        $counter = Counter::where('active_user_id', $user->id)->with('services')->first();
+
        
-        $waitingQuery = Queue::where('status', 'pending')
-                             ->whereDate('created_at', Carbon::today())
-                             ->with('service')
-                             ->orderBy('id', 'asc');
-
-        if ($filterServiceIds) {
-            $waitingQuery->whereIn('service_id', $filterServiceIds);
+        if (!$counter) {
+            return response()->json([
+                'role' => 'staff',
+                'message' => 'Anda belum memilih loket.',
+                'waiting' => [],
+                'skipped' => []
+            ]);
         }
-
-        $waiting = $waitingQuery->get()->map(function($q) {
-            return [
-                'id' => $q->id,
-                'code' => $q->queue_code,
-                'service_name' => $q->service->name,
-                'time' => $q->created_at->format('H:i'),
-                'waited_for' => $q->created_at->diffForHumans()
-            ];
-        });
 
         
-        $skippedQuery = Queue::where('status', 'skipped')
-                             ->whereDate('created_at', Carbon::today())
-                             ->with('service')
-                             ->orderBy('updated_at', 'asc');
+        $filterServiceIds = $counter->services->pluck('id')->toArray();
 
-        if ($filterServiceIds) {
-            $skippedQuery->whereIn('service_id', $filterServiceIds);
-        }
+        
+        $waiting = Queue::where('status', 'pending')
+                        ->whereDate('created_at', Carbon::today())
+                        ->whereIn('service_id', $filterServiceIds)
+                        ->with('service')
+                        ->orderBy('id', 'asc')
+                        ->get()
+                        ->map(function($q) {
+                            return [
+                                'id' => $q->id,
+                                'code' => $q->queue_code,
+                                'service_name' => $q->service->name,
+                                'time' => $q->created_at->format('H:i'),
+                                'waited_for' => $q->created_at->diffForHumans()
+                            ];
+                        });
 
-        $skipped = $skippedQuery->get()->map(function($q) {
-            return [
-                'id' => $q->id,
-                'code' => $q->queue_code,
-                'service_name' => $q->service->name,
-                'skipped_at' => $q->updated_at->format('H:i')
-            ];
-        });
+        
+        $skipped = Queue::where('status', 'skipped')
+                        ->whereDate('created_at', Carbon::today())
+                        ->whereIn('service_id', $filterServiceIds)
+                        ->with('service')
+                        ->orderBy('updated_at', 'desc') 
+                        ->get()
+                        ->map(function($q) {
+                            return [
+                                'id' => $q->id,
+                                'code' => $q->queue_code,
+                                'service_name' => $q->service->name,
+                                'skipped_at' => $q->updated_at->format('H:i')
+                            ];
+                        });
 
         return response()->json([
+            'role' => 'staff',
+            'counter_name' => $counter->name,
             'waiting' => $waiting,
-            'skipped' => $skipped,
-            'role' => $user->role 
+            'skipped' => $skipped
         ]);
     }
 }

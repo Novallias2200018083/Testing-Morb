@@ -3,198 +3,174 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Live Monitor - QueuePro</title>
-    
+    <title>Live Monitor Ultra - QueuePro</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    
-    <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <style>
-        body {
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            background-color: #f8fafc; 
-            color: #1e293b; 
-            overflow: hidden; 
-        }
-        
-        
-        .font-digital { font-family: 'Chakra Petch', sans-serif; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #0f172a; color: #f8fafc; overflow: hidden; }
+        .font-mono-custom { font-family: 'JetBrains Mono', monospace; letter-spacing: -1px; }
 
        
-        
-       
+        .smooth-all { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+
+      
+        .glass-card {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+
         .card-calling {
-            border: 4px solid #f59e0b; 
-            background-color: #fffbeb; 
-            box-shadow: 0 0 40px rgba(245, 158, 11, 0.4);
-            animation: pulse-calling 1.5s infinite;
-            transform: scale(1.02);
-            z-index: 20;
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(245, 158, 11, 0.2));
+            border-color: rgba(245, 158, 11, 0.5);
+            box-shadow: 0 0 20px rgba(245, 158, 11, 0.3);
+            animation: pulse-glow 1.5s infinite;
         }
-        @keyframes pulse-calling {
-            0% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.4); border-color: #f59e0b; }
-            50% { box-shadow: 0 0 0 15px rgba(245, 158, 11, 0); border-color: #fbbf24; }
-            100% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0); border-color: #f59e0b; }
+        @keyframes pulse-glow {
+            0%, 100% { box-shadow: 0 0 15px rgba(245, 158, 11, 0.2); border-color: rgba(245, 158, 11, 0.5); }
+            50% { box-shadow: 0 0 25px rgba(245, 158, 11, 0.5); border-color: rgba(245, 158, 11, 0.8); }
         }
 
-        
         .card-serving {
-            border: 3px solid #10b981; 
-            background-color: #ffffff;
-            box-shadow: 0 10px 25px -5px rgba(16, 185, 129, 0.2);
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.05), rgba(16, 185, 129, 0.1));
+            border-color: rgba(16, 185, 129, 0.4);
         }
+
+      
+        .scrollbar-hide::-webkit-scrollbar { display: none; }
 
        
-        .card-stop {
-            border: 2px solid #e2e8f0;
-            background-color: #ffffff;
-        }
-
-        
-        .card-closed {
-            background-color: #f1f5f9;
-            border: 2px dashed #cbd5e1;
-            opacity: 0.8;
-            filter: grayscale(100%);
-        }
-
-        
-        .smooth-transition { transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1); }
-        .marquee-container { overflow: hidden; white-space: nowrap; }
+        .marquee-container { overflow: hidden; white-space: nowrap; mask-image: linear-gradient(to right, transparent, black 5%, black 95%, transparent); }
         .marquee-content { display: inline-block; padding-left: 100%; animation: marquee 35s linear infinite; }
         @keyframes marquee { 0% { transform: translate(0, 0); } 100% { transform: translate(-100%, 0); } }
-        .scrollbar-hide::-webkit-scrollbar { display: none; }
+
+        
+        .ping-dot { position: relative; }
+        .ping-dot::after { content: ''; position: absolute; top: -1px; right: -1px; width: 6px; height: 6px; background: #22c55e; border-radius: 50%; animation: ping 1s cubic-bezier(0, 0, 0.2, 1) infinite; }
+        @keyframes ping { 75%, 100% { transform: scale(2); opacity: 0; } }
     </style>
 </head>
-<body class="h-screen flex flex-col">
+<body class="h-screen flex flex-col selection:bg-indigo-500 selection:text-white">
 
-    <div id="startOverlay" onclick="startApp()" class="fixed inset-0 z-50 bg-slate-900/80 backdrop-blur-md flex items-center justify-center cursor-pointer transition-opacity duration-700">
-        <div class="bg-white p-10 rounded-3xl shadow-2xl text-center max-w-sm mx-4 transform hover:scale-105 transition-transform">
-            <div class="w-20 h-20 bg-indigo-600 text-white rounded-full flex items-center justify-center mx-auto mb-6 text-3xl shadow-lg shadow-indigo-500/30">
-                <i class="fa-solid fa-play ml-1"></i>
-            </div>
-            <h3 class="text-2xl font-bold text-slate-800 mb-2">Hubungkan Layar</h3>
-            <p class="text-slate-500 font-medium">Klik dimanapun untuk memulai monitor & suara.</p>
+    <div id="startOverlay" onclick="startApp()" class="fixed inset-0 z-50 bg-black/90 backdrop-blur-md flex flex-col items-center justify-center cursor-pointer transition-opacity duration-500">
+        <div class="relative group">
+            <div class="absolute -inset-1 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-full blur opacity-75 group-hover:opacity-100 transition duration-1000 group-hover:duration-200"></div>
+            <button class="relative w-20 h-20 bg-black rounded-full flex items-center justify-center text-white text-3xl shadow-2xl">
+                <i class="fa-solid fa-play ml-1 group-hover:scale-110 transition-transform"></i>
+            </button>
         </div>
+        <p class="mt-6 text-slate-400 font-medium tracking-wide text-sm uppercase">Tap to Launch Monitor</p>
     </div>
 
-    <header class="h-24 bg-white border-b border-slate-200 flex items-center justify-between px-10 shadow-sm z-20 relative">
-        <div class="flex items-center gap-5">
-            <div class="bg-indigo-600 text-white w-12 h-12 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-200">
-                <i class="fa-solid fa-layer-group text-2xl"></i>
+    <header class="h-14 px-5 flex items-center justify-between z-20 border-b border-white/5 bg-[#0f172a]/80 backdrop-blur-md">
+        <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white shadow-lg shadow-indigo-500/20">
+                <i class="fa-solid fa-layer-group text-xs"></i>
             </div>
             <div>
-                <h1 class="text-2xl font-extrabold text-slate-800 tracking-tight leading-none">Queue<span class="text-indigo-600">Pro</span></h1>
-                <p class="text-sm text-slate-500 font-bold uppercase tracking-[0.2em] mt-1">Sistem Antrian Terpadu</p>
+                <h1 class="text-sm font-bold text-white tracking-tight leading-none">Queue<span class="text-indigo-400">Pro</span> <span class="text-[9px] text-slate-500 uppercase font-medium tracking-wider ml-1">Live</span></h1>
             </div>
         </div>
-        <div class="text-right">
-            <div id="clock" class="text-4xl font-black text-slate-700 tracking-tight leading-none font-digital">00:00</div>
-            <div id="date" class="text-sm text-slate-400 font-bold uppercase tracking-widest mt-1">--</div>
+        <div class="flex items-center gap-4">
+            <div class="text-right">
+                <div id="clock" class="text-lg font-bold text-white font-mono-custom leading-none">00:00:00</div>
+                <div id="date" class="text-[10px] text-slate-400 font-medium uppercase tracking-wider leading-none mt-0.5">--</div>
+            </div>
+            <div id="connectionStatus" class="w-2 h-2 rounded-full bg-slate-600 transition-colors duration-300"></div>
         </div>
-        <div class="absolute bottom-0 left-0 w-full h-[3px] bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500"></div>
     </header>
 
-    <main class="flex-grow flex p-8 gap-8 overflow-hidden relative">
-        
-        <div class="absolute inset-0 opacity-[0.03] pointer-events-none" style="background-image: radial-gradient(#6366f1 1px, transparent 1px); background-size: 24px 24px;"></div>
+    <main class="flex-grow p-4 gap-4 flex overflow-hidden relative">
+        <div class="absolute top-0 left-0 w-full h-full bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-indigo-900/20 via-[#0f172a] to-[#0f172a] -z-10"></div>
 
-        <div class="flex-grow grid grid-cols-1 {{ count($services) > 1 ? 'lg:grid-cols-'.min(count($services), 2) : '' }} gap-8 h-full z-10">
+        <div class="flex-grow grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 h-full content-start overflow-y-auto scrollbar-hide pb-20">
             
             @foreach($services as $service)
-            <div class="flex flex-col h-full bg-white rounded-3xl border border-slate-200 shadow-xl overflow-hidden relative">
-                
-                <div class="bg-gradient-to-r from-slate-50 to-white px-8 py-5 border-b border-slate-100 flex justify-between items-center">
-                    <h2 class="text-xl font-extrabold text-slate-700 flex items-center gap-3 uppercase">
-                        @if(Str::contains(Str::lower($service->name), 'cs')) <i class="fa-solid fa-headset text-indigo-500"></i>
-                        @elseif(Str::contains(Str::lower($service->name), 'teller')) <i class="fa-solid fa-money-bill-wave text-emerald-500"></i>
-                        @else <i class="fa-solid fa-users text-slate-500"></i>
-                        @endif
+            <div class="flex flex-col glass-card rounded-xl overflow-hidden h-full min-h-[220px]">
+                <div class="bg-white/5 px-4 py-2.5 border-b border-white/5 flex justify-between items-center">
+                    <h2 class="text-xs font-bold text-slate-300 flex items-center gap-2 uppercase tracking-wide">
+                        <span class="w-1.5 h-1.5 rounded-full 
+                            @if(Str::contains(Str::lower($service->name), 'cs')) bg-indigo-500 
+                            @elseif(Str::contains(Str::lower($service->name), 'teller')) bg-emerald-500 
+                            @else bg-slate-500 @endif">
+                        </span>
                         {{ $service->name }}
                     </h2>
-                    <span class="text-xs font-black text-slate-400 bg-white border border-slate-200 px-3 py-1.5 rounded-lg shadow-sm">
-                        {{ $service->code }}
-                    </span>
+                    <span class="text-[10px] font-mono-custom text-slate-500">{{ $service->code }}</span>
                 </div>
 
-                <div class="flex-grow p-8 overflow-y-auto bg-slate-50/50">
-                    <div class="grid grid-cols-1 gap-6">
+                <div class="p-3 flex-grow bg-black/20">
+                    <div class="grid {{ $service->counters->count() > 1 ? 'grid-cols-2' : 'grid-cols-1' }} gap-2 h-full content-start">
+                        
                         @forelse($service->counters as $counter)
-                            <div id="card-counter-{{ $counter->id }}" class="card-stop rounded-2xl p-6 text-center smooth-transition relative group">
-                                
-                                <div class="text-sm font-bold text-slate-400 uppercase tracking-[0.2em] mb-2 border-b border-slate-100 pb-2">
-                                    {{ $counter->name }}
-                                </div>
-
-                                <div id="num-counter-{{ $counter->id }}" class="text-8xl font-black font-digital text-slate-300 tracking-wider my-4 leading-none smooth-transition scale-100">
-                                    --
-                                </div>
-
-                                <div id="status-counter-{{ $counter->id }}" class="min-h-[40px] flex items-center justify-center">
-                                    <span class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-slate-100 text-slate-400 text-xs font-bold uppercase tracking-wider border border-slate-200">
-                                        Menunggu
-                                    </span>
-                                </div>
-
-                                <div id="reason-counter-{{ $counter->id }}" class="hidden absolute inset-0 bg-slate-100/90 backdrop-blur-sm flex items-center justify-center rounded-2xl z-30">
-                                    <div class="bg-white border-2 border-red-100 px-6 py-3 rounded-xl shadow-lg text-center transform rotate-0">
-                                        <div class="text-xs text-slate-400 font-bold uppercase mb-1">MAAF, LOKET TUTUP</div>
-                                        <div class="text-xl font-black text-red-500 uppercase tracking-widest" id="reason-text-{{ $counter->id }}">--</div>
-                                    </div>
-                                </div>
-
+                        <div id="card-counter-{{ $counter->id }}" class="glass-card rounded-lg p-2.5 flex flex-col items-center justify-center text-center relative smooth-all group h-full min-h-[90px]">
+                            
+                            <div class="w-full flex justify-between items-start mb-1">
+                                <span class="text-[9px] font-bold text-slate-500 uppercase tracking-wider">{{ $counter->name }}</span>
+                                <div id="status-dot-{{ $counter->id }}" class="w-1.5 h-1.5 rounded-full bg-slate-700"></div>
                             </div>
+                            
+                            <div id="num-counter-{{ $counter->id }}" class="text-4xl font-bold font-mono-custom text-slate-400 my-1 leading-none tracking-tight group-hover:scale-105 transition-transform duration-300">
+                                --
+                            </div>
+
+                            <div id="status-text-{{ $counter->id }}" class="text-[9px] font-medium text-slate-500 uppercase tracking-widest mt-1">
+                                Menunggu
+                            </div>
+
+                            <div id="reason-counter-{{ $counter->id }}" class="hidden absolute inset-0 bg-black/80 backdrop-blur-[2px] flex flex-col items-center justify-center rounded-lg z-20">
+                                <i class="fa-solid fa-lock text-slate-500 text-sm mb-1"></i>
+                                <span id="reason-text-{{ $counter->id }}" class="text-[9px] font-bold text-red-400 uppercase tracking-wide px-2 text-center leading-tight">--</span>
+                            </div>
+                        </div>
                         @empty
-                            <div class="flex flex-col items-center justify-center h-full text-slate-400 opacity-60">
-                                <i class="fa-solid fa-store-slash text-4xl mb-3"></i>
-                                <span class="text-sm font-bold uppercase">Belum ada loket</span>
-                            </div>
+                        <div class="col-span-full flex flex-col items-center justify-center text-slate-600 py-6">
+                            <i class="fa-solid fa-store-slash text-xl mb-1 opacity-50"></i>
+                            <span class="text-[10px] font-medium uppercase tracking-wide">Offline</span>
+                        </div>
                         @endforelse
+
                     </div>
                 </div>
             </div>
             @endforeach
-
         </div>
 
-        <aside class="w-96 flex-none flex flex-col gap-6 z-10">
+        <aside class="w-64 flex-none flex flex-col gap-4 z-10 h-full">
             
-            <div class="bg-white rounded-3xl border border-slate-200 shadow-lg overflow-hidden flex flex-col flex-grow max-h-[50%]">
-                <div class="bg-gradient-to-r from-indigo-50 to-white px-6 py-4 border-b border-slate-100">
-                    <h3 class="text-sm font-extrabold text-slate-700 flex items-center gap-2 uppercase tracking-wide">
-                        <i class="fa-solid fa-list-ul text-indigo-500"></i> Sisa Antrian
+            <div class="glass-card rounded-xl overflow-hidden flex flex-col h-1/2">
+                <div class="bg-white/5 px-4 py-2.5 border-b border-white/5">
+                    <h3 class="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                        <i class="fa-solid fa-list-ul text-indigo-500"></i> Antrian
                     </h3>
                 </div>
-                <div id="waitingList" class="p-4 space-y-3 overflow-y-auto scrollbar-hide bg-slate-50/30">
-                    <div class="flex items-center justify-center h-24 text-slate-400 text-sm italic">
-                        <i class="fa-solid fa-circle-notch fa-spin mr-2"></i> Memuat...
-                    </div>
+                <div id="waitingList" class="p-2 space-y-1.5 overflow-y-auto scrollbar-hide flex-grow">
+                    <div class="flex items-center justify-center h-full text-slate-600 text-[10px] italic">Memuat...</div>
                 </div>
             </div>
 
-            <div class="bg-slate-900 rounded-3xl overflow-hidden shadow-xl flex-grow relative group border border-slate-800">
-                <img src="https://images.unsplash.com/photo-1556761175-5973dc0f32e7?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80" 
-                     class="w-full h-full object-cover opacity-40 group-hover:opacity-50 transition-opacity duration-1000">
-                <div class="absolute inset-0 flex flex-col items-center justify-center p-8 text-center bg-gradient-to-t from-slate-900 via-transparent to-transparent">
-                    <span class="text-white/60 text-xs font-bold uppercase tracking-[0.3em] border-b border-white/20 pb-2 mb-2">Informasi</span>
-                    <h3 class="text-white font-bold text-xl leading-tight">Melayani Dengan Sepenuh Hati</h3>
+            <div class="relative rounded-xl overflow-hidden shadow-lg flex-grow group border border-white/10">
+                <img src="https://images.unsplash.com/photo-1556761175-5973dc0f32e7?auto=format&fit=crop&w=600&q=80" 
+                     class="absolute inset-0 w-full h-full object-cover opacity-40 group-hover:scale-105 transition-transform duration-1000">
+                <div class="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent flex flex-col justify-end p-4">
+                    <span class="text-indigo-400 text-[9px] font-bold uppercase tracking-widest mb-0.5">Info</span>
+                    <h3 class="text-white font-bold text-sm leading-tight">Pelayanan Prima Prioritas Kami</h3>
                 </div>
             </div>
 
         </aside>
-
     </main>
 
-    <footer class="h-16 bg-indigo-900 text-white flex items-center overflow-hidden z-20 shadow-[0_-5px_20px_rgba(0,0,0,0.1)] relative border-t-4 border-indigo-500">
-        <div class="px-8 bg-indigo-800 h-full flex items-center font-black text-xs uppercase tracking-[0.2em] shadow-lg z-10 relative">
-            <span class="absolute right-0 top-0 bottom-0 w-4 bg-gradient-to-r from-indigo-800 to-transparent"></span>
-            INFO TERKINI:
+    <footer class="h-8 bg-[#0f172a] text-white flex items-center overflow-hidden z-20 border-t border-white/5 fixed bottom-0 w-full">
+        <div class="px-4 bg-indigo-600 h-full flex items-center font-bold text-[9px] uppercase tracking-widest shadow-xl z-10">
+            Live Info
         </div>
-        <div class="marquee-container w-full bg-indigo-900">
-            <div class="marquee-content text-lg font-medium py-2 text-indigo-100 tracking-wide flex items-center">
-                Selamat Datang di Sistem Pelayanan Terpadu. Mohon menunggu nomor antrian Anda dipanggil. Budayakan antri untuk kenyamanan bersama. Terima kasih atas kunjungan Anda.
+        <div class="marquee-container w-full">
+            <div class="marquee-content text-xs font-medium text-slate-300 flex items-center">
+                <span class="mx-4">•</span> Selamat Datang di QueuePro <span class="mx-4">•</span> Mohon menunggu nomor antrian dipanggil <span class="mx-4">•</span> Terima kasih atas kesabaran Anda <span class="mx-4">•</span> Budayakan antri untuk kenyamanan bersama
             </div>
         </div>
     </footer>
@@ -203,82 +179,99 @@
 
     <script>
        
-        setInterval(() => {
+        function updateClock() {
             const now = new Date();
-            document.getElementById('clock').innerText = now.toLocaleTimeString('id-ID', {hour12: false, hour:'2-digit', minute:'2-digit'});
-            document.getElementById('date').innerText = now.toLocaleDateString('id-ID', {weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'});
-        }, 1000);
+            document.getElementById('clock').innerText = now.toLocaleTimeString('id-ID', {hour12: false});
+            document.getElementById('date').innerText = now.toLocaleDateString('id-ID', {weekday: 'short', day: 'numeric', month: 'short'});
+            requestAnimationFrame(updateClock);
+        }
+        requestAnimationFrame(updateClock);
 
-        
         let lastCalledData = {}; 
 
         function startApp() {
             const overlay = document.getElementById('startOverlay');
             overlay.style.opacity = '0';
-            setTimeout(() => overlay.remove(), 700);
-
+            setTimeout(() => overlay.remove(), 500);
             
             const bell = document.getElementById('bellSound');
-            bell.volume = 0;
-            bell.play().then(() => { bell.pause(); bell.volume = 1; }).catch(e => console.log("Audio blocked"));
+            bell.volume = 0; bell.play().then(() => { bell.pause(); bell.volume = 1; }).catch(e => console.log("Audio blocked"));
             
             fetchQueueData();
-            setInterval(fetchQueueData, 1000); 
+            
+            setInterval(fetchQueueData, 800);
         }
 
         async function fetchQueueData() {
+            const statusIndicator = document.getElementById('connectionStatus');
             try {
+               
+                statusIndicator.classList.add('bg-emerald-500', 'shadow-[0_0_8px_rgba(16,185,129,0.6)]');
+                statusIndicator.classList.remove('bg-slate-600', 'bg-red-500');
+
                 const response = await fetch('/api/monitor'); 
                 const data = await response.json();
                 updateDisplay(data);
-            } catch(e) { console.error("Connection lost:", e); }
+
+                
+                setTimeout(() => {
+                    statusIndicator.classList.remove('bg-emerald-500', 'shadow-[0_0_8px_rgba(16,185,129,0.6)]');
+                    statusIndicator.classList.add('bg-slate-600');
+                }, 200);
+
+            } catch(e) { 
+                console.error("Connection lost:", e);
+                statusIndicator.classList.add('bg-red-500');
+                statusIndicator.classList.remove('bg-emerald-500', 'bg-slate-600');
+            }
         }
 
         function updateDisplay(data) {
             const counters = data.counters; 
             const waitingSummary = data.waiting_summary;
 
-            
             counters.forEach(c => {
                 const counterId = c.id;
                 const card = document.getElementById(`card-counter-${counterId}`);
                 const numEl = document.getElementById(`num-counter-${counterId}`);
-                const statusEl = document.getElementById(`status-counter-${counterId}`);
+                const statusText = document.getElementById(`status-text-${counterId}`);
+                const statusDot = document.getElementById(`status-dot-${counterId}`);
                 const reasonEl = document.getElementById(`reason-counter-${counterId}`);
                 const reasonText = document.getElementById(`reason-text-${counterId}`);
 
                 if (!card) return;
 
-               
+                
                 if (c.status === 'closed') {
-                    card.className = "card-closed rounded-2xl p-6 text-center smooth-transition relative";
-                    
-                    
+                    card.className = "glass-card rounded-lg p-2.5 flex flex-col items-center justify-center text-center relative smooth-all h-full min-h-[90px] opacity-60";
                     if (c.closing_reason) {
                         reasonEl.classList.remove('hidden');
                         reasonText.innerText = c.closing_reason;
                     } else {
-                        
                         reasonEl.classList.add('hidden');
                         numEl.innerText = "--";
-                        statusEl.innerHTML = `<span class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-200 text-slate-500 text-[10px] font-bold uppercase tracking-wider">OFFLINE</span>`;
+                        numEl.className = "text-4xl font-bold font-mono-custom text-slate-600 my-1 leading-none";
+                        statusText.innerText = "OFFLINE";
+                        statusText.className = "text-[9px] font-bold text-slate-600 uppercase tracking-widest mt-1";
+                        statusDot.className = "w-1.5 h-1.5 rounded-full bg-slate-600";
                     }
                     return; 
                 }
 
-               
                 reasonEl.classList.add('hidden');
-
                 
+              
                 if (c.active_queue) {
                     const q = c.active_queue;
                     numEl.innerText = q.queue_code;
 
                     if (q.status === 'called') {
                         
-                        card.className = "card-calling rounded-2xl p-6 text-center smooth-transition relative";
-                        numEl.className = "text-9xl font-black text-amber-500 tracking-tighter my-4 leading-none smooth-transition scale-110 drop-shadow-md";
-                        statusEl.innerHTML = `<span class="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-amber-500 text-white text-sm font-extrabold uppercase tracking-widest shadow-lg animate-bounce"><i class="fa-solid fa-bullhorn"></i> Memanggil...</span>`;
+                        card.className = "card-calling rounded-lg p-2.5 flex flex-col items-center justify-center text-center relative smooth-all h-full min-h-[90px] z-10 border border-amber-500/50";
+                        numEl.className = "text-5xl font-bold font-mono-custom text-amber-400 my-1 leading-none drop-shadow-[0_0_8px_rgba(251,191,36,0.5)] scale-110 transition-transform";
+                        statusText.innerHTML = "<i class='fa-solid fa-bullhorn mr-1'></i> MEMANGGIL";
+                        statusText.className = "text-[9px] font-bold text-amber-400 uppercase tracking-widest mt-1 animate-pulse";
+                        statusDot.className = "w-1.5 h-1.5 rounded-full bg-amber-500 shadow-[0_0_5px_#f59e0b]";
                         
                        
                         const lastState = lastCalledData[counterId];
@@ -289,52 +282,54 @@
 
                     } else {
                         
-                        card.className = "card-serving rounded-2xl p-6 text-center smooth-transition relative";
-                        numEl.className = "text-8xl font-black text-emerald-600 tracking-tighter my-4 leading-none smooth-transition scale-100";
-                        statusEl.innerHTML = `<span class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-emerald-100 text-emerald-700 text-xs font-bold uppercase tracking-wider border border-emerald-200"><i class="fa-solid fa-user-check"></i> Sedang Melayani</span>`;
+                        card.className = "card-serving rounded-lg p-2.5 flex flex-col items-center justify-center text-center relative smooth-all h-full min-h-[90px]";
+                        numEl.className = "text-4xl font-bold font-mono-custom text-emerald-400 my-1 leading-none";
+                        statusText.innerHTML = "MELAYANI";
+                        statusText.className = "text-[9px] font-bold text-emerald-500 uppercase tracking-widest mt-1";
+                        statusDot.className = "w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_5px_#10b981]";
                         
                         lastCalledData[counterId] = { code: q.queue_code, status: 'serving' };
                     }
 
                 } else if (c.last_queue) {
-                  
-                    card.className = "card-stop rounded-2xl p-6 text-center smooth-transition relative";
                     
+                    card.className = "glass-card rounded-lg p-2.5 flex flex-col items-center justify-center text-center relative smooth-all h-full min-h-[90px]";
                     numEl.innerText = c.last_queue.queue_code;
-                    numEl.className = "text-8xl font-black text-slate-700 tracking-tighter my-4 leading-none smooth-transition opacity-80"; // Warna Abu Gelap
-                    
-                    statusEl.innerHTML = `<span class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white border border-slate-300 text-slate-500 text-xs font-bold uppercase tracking-wider shadow-sm">Antrian Terakhir</span>`;
+                    numEl.className = "text-4xl font-bold font-mono-custom text-slate-500 my-1 leading-none opacity-50"; 
+                    statusText.innerText = "SELESAI";
+                    statusText.className = "text-[9px] font-medium text-slate-500 uppercase tracking-widest mt-1";
+                    statusDot.className = "w-1.5 h-1.5 rounded-full bg-slate-500";
 
                 } else {
-                   
-                    card.className = "card-stop rounded-2xl p-6 text-center smooth-transition relative";
+                    
+                    card.className = "glass-card rounded-lg p-2.5 flex flex-col items-center justify-center text-center relative smooth-all h-full min-h-[90px]";
                     numEl.innerText = "--";
-                    numEl.className = "text-8xl font-black text-slate-200 tracking-tighter my-4 leading-none";
-                    statusEl.innerHTML = `<span class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-slate-100 text-slate-400 text-xs font-bold uppercase tracking-wider">Menunggu</span>`;
+                    numEl.className = "text-4xl font-bold font-mono-custom text-slate-700 my-1 leading-none";
+                    statusText.innerText = "MENUNGGU";
+                    statusText.className = "text-[9px] font-medium text-slate-600 uppercase tracking-widest mt-1";
+                    statusDot.className = "w-1.5 h-1.5 rounded-full bg-slate-700";
                 }
             });
 
-            
+           
             const waitingList = document.getElementById('waitingList');
             waitingList.innerHTML = '';
             
             if(waitingSummary.length === 0) {
-                waitingList.innerHTML = `<div class="flex flex-col items-center justify-center py-10 text-slate-400 opacity-60"><i class="fa-solid fa-mug-hot text-3xl mb-3 text-slate-300"></i><span class="text-xs font-bold uppercase tracking-widest">Antrian Kosong</span></div>`;
+                waitingList.innerHTML = `<div class="flex flex-col items-center justify-center py-8 text-slate-600 opacity-50"><i class="fa-solid fa-mug-hot text-lg mb-1"></i><span class="text-[9px] font-bold uppercase">Kosong</span></div>`;
             } else {
                 waitingSummary.forEach(item => {
-                   
-                    let badgeColor = "bg-slate-100 text-slate-500 border-slate-200";
-                    let icon = "fa-users";
-                    if(item.service.name.toLowerCase().includes('cs')) { badgeColor = "bg-indigo-50 text-indigo-600 border-indigo-100"; icon = "fa-headset"; }
-                    if(item.service.name.toLowerCase().includes('teller')) { badgeColor = "bg-emerald-50 text-emerald-600 border-emerald-100"; icon = "fa-money-bill-wave"; }
+                    let badgeClass = "bg-slate-800 text-slate-400";
+                    if(item.service.name.toLowerCase().includes('cs')) badgeClass = "bg-indigo-500/10 text-indigo-400 border border-indigo-500/20";
+                    if(item.service.name.toLowerCase().includes('teller')) badgeClass = "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20";
 
                     waitingList.innerHTML += `
-                        <div class="flex justify-between items-center p-3.5 rounded-2xl border border-slate-100 bg-white hover:shadow-md hover:border-slate-200 transition-all duration-300 group">
-                            <div class="flex items-center gap-4">
-                                <div class="w-10 h-10 rounded-xl ${badgeColor} border flex items-center justify-center font-bold text-lg shadow-sm group-hover:scale-110 transition-transform"><i class="fa-solid ${icon}"></i></div>
-                                <div><div class="text-xs font-extrabold text-slate-700 uppercase tracking-tight">${item.service.name}</div><div class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mt-0.5">Menunggu</div></div>
+                        <div class="flex justify-between items-center p-2 rounded-lg bg-white/5 border border-white/5 hover:bg-white/10 transition-colors">
+                            <div class="flex items-center gap-2">
+                                <div class="w-6 h-6 rounded ${badgeClass} flex items-center justify-center font-bold text-[10px] shadow-sm">${item.service.code}</div>
+                                <div class="text-[10px] font-bold text-slate-300 uppercase tracking-tight">${item.service.name}</div>
                             </div>
-                            <div class="text-2xl font-black text-slate-800 tracking-tighter group-hover:text-indigo-600 transition-colors">${item.total}</div>
+                            <div class="text-sm font-bold text-white font-mono-custom">${item.total}</div>
                         </div>`;
                 });
             }
@@ -342,8 +337,7 @@
 
         function playSound() {
             const bell = document.getElementById('bellSound');
-            bell.currentTime = 0;
-            bell.play().catch(e => console.log("Gagal memutar audio:", e));
+            bell.currentTime = 0; bell.play().catch(e => console.log("Gagal memutar audio:", e));
         }
     </script>
 </body>
