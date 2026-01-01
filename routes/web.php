@@ -1,36 +1,40 @@
 <?php
 
-use App\Http\Controllers\Admin\MonitorController;
 use Illuminate\Support\Facades\Route;
 use App\Models\Service;
-
-Route::get('/', function () {
-    return view('welcome');
-});
+use App\Http\Controllers\Admin\MonitorController;
+use App\Http\Controllers\Admin\QueueListController;
 
 
-Route::get('/monitor', [MonitorController::class, 'index']);
+Route::redirect('/', '/admin/login');
+
+
+Route::get('/monitor', [MonitorController::class, 'index'])->name('monitor');
 
 
 Route::get('/kiosk', function () {
-    $services = Service::all(); 
+    $services = Service::all();
     return view('kiosk', ['services' => $services]);
+})->name('kiosk');
+
+
+
+Route::prefix('admin')->name('admin.')->group(function () {
+    
+  
+    Route::get('/login', function () {
+        return view('login');
+    })->name('login'); 
+
+    
+    Route::get('/dashboard', function () {
+        return view('dashboard');
+    })->name('dashboard');
+
+    
+    Route::view('/services', 'admin.services')->name('services');
+    Route::view('/counters', 'admin.counters')->name('counters');
+    Route::view('/staff', 'admin.staff')->name('staff');
+
+    Route::get('/queues', [QueueListController::class, 'index'])->name('queues');
 });
-
-
-Route::get('/admin/login', function () {
-    return view('login');
-})->name('login');
-
-
-Route::get('/admin/dashboard', function () {
-    return view('dashboard');
-});
-
-Route::view('/admin/services', 'admin.services'); 
-
-Route::view('/admin/counters', 'admin.counters'); 
-
-Route::view('/admin/staff', 'admin.staff');  
-
-Route::get('/admin/queues', [App\Http\Controllers\Admin\QueueListController::class, 'index'])->name('admin.queues');
